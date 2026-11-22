@@ -1,3 +1,4 @@
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 const NETWORK_ERROR_MESSAGE =
   'Could not reach the server. Check your connection and try again.';
 
@@ -11,7 +12,7 @@ export async function analyzeResume(file, targetRole, userId) {
   let data;
 
   try {
-    response = await fetch('/api/analyze', {
+    response = await fetch(`${API_BASE}/api/analyze`, {
       method: 'POST',
       body: formData,
     });
