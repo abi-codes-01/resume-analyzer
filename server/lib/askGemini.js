@@ -1,14 +1,18 @@
 import { GoogleGenAI } from '@google/genai';
 import { AnalysisJsonSchema, AnalysisSchema } from './analysisSchema.js';
 import { analyzerRules } from './analyzerRules.js';
-import { ROLES } from './roles.js';
+import { findPresetSkills } from './roles.js';
 
 const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const MAX_OUTPUT_TOKENS = 1500;
 
 function buildUserContent(text, targetRole) {
-  const coreSkills = (ROLES[targetRole] ?? []).join(', ');
-  return `Target role: ${targetRole}\nCore skills for this role: ${coreSkills}\n\n<resume>\n${text}\n</resume>`;
+  const presetSkills = findPresetSkills(targetRole);
+  const skillsLine = presetSkills
+    ? `Core skills for this role: ${presetSkills.join(', ')}`
+    : `Core skills for this role: evaluate against the standard entry-level core skills expected for a ${targetRole}.`;
+
+  return `Target role: ${targetRole}\n${skillsLine}\n\n<resume>\n${text}\n</resume>`;
 }
 
 export async function askGemini(text, targetRole) {

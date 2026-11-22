@@ -1,8 +1,18 @@
-import { ROLES } from './roles.js';
+import { findPresetSkills } from './roles.js';
 
 const FALLBACK_VERDICT = 'AI is busy, showing a skill match only';
 const METRICS_FALLBACK_FIX =
   'Add numbers to your project results, like users or speed.';
+const GENERAL_DEVELOPER_SKILLS = [
+  'Git',
+  'SQL',
+  'REST APIs',
+  'Testing',
+  'Docker',
+  'Data Structures',
+  'Algorithms',
+  'Linux',
+];
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -16,7 +26,7 @@ function hasSkillMention(normalizedText, skill) {
 }
 
 export function fallbackAnalysis(text, targetRole) {
-  const coreSkills = ROLES[targetRole] ?? [];
+  const coreSkills = findPresetSkills(targetRole) ?? GENERAL_DEVELOPER_SKILLS;
   const normalizedText = text.toLowerCase();
 
   const skillsFound = [];

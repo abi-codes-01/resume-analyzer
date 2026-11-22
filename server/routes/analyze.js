@@ -4,12 +4,13 @@ import { analyzeResume } from '../lib/analyzeResume.js';
 import { costInr } from '../lib/cost.js';
 import { isUuid } from '../lib/isUuid.js';
 import { readResume } from '../lib/readResume.js';
-import { ROLES } from '../lib/roles.js';
 import { spentTodayInr } from '../lib/spend.js';
 import { analyzeRateLimit } from '../middleware/rateLimit.js';
 import { Result } from '../models/Result.js';
 
 const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const MIN_ROLE_LENGTH = 2;
+const MAX_ROLE_LENGTH = 80;
 const MIN_TEXT_LENGTH = 100;
 const MAX_TEXT_LENGTH = 20_000;
 
@@ -25,15 +26,22 @@ router.post(
   analyzeRateLimit,
   upload.single('resume'),
   async (req, res) => {
-    const targetRole = req.body?.targetRole;
+    const rawTargetRole = req.body?.targetRole;
+    const targetRole =
+      typeof rawTargetRole === 'string' ? rawTargetRole.trim() : '';
     const userId = req.body?.userId;
 
     if (!req.file || req.file.mimetype !== 'application/pdf') {
       return res.status(400).json({ error: 'Upload your resume as a PDF.' });
     }
 
-    if (!targetRole || !Object.hasOwn(ROLES, targetRole)) {
-      return res.status(400).json({ error: 'Pick a role from the list.' });
+    if (
+      targetRole.length < MIN_ROLE_LENGTH ||
+      targetRole.length > MAX_ROLE_LENGTH
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Please enter a target role (2–80 characters).' });
     }
 
     if (!isUuid(userId)) {

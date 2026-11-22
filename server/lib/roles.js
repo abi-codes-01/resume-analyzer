@@ -40,3 +40,16 @@ export const ROLES = {
     'Node.js',
   ],
 };
+
+export function findPresetSkills(targetRole) {
+  if (typeof targetRole !== 'string') {
+    return null;
+  }
+
+  const normalized = targetRole.trim().toLowerCase();
+  const match = Object.entries(ROLES).find(
+    ([name]) => name.toLowerCase() === normalized,
+  );
+
+  return match ? match[1] : null;
+}

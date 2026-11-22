@@ -1,14 +1,15 @@
 import { useState } from 'react';
 
-const TARGET_ROLES = [
+const PRESET_ROLES = [
   'Frontend developer',
   'Backend developer',
   'Full-stack developer',
   'AI engineer',
 ];
 
-const DEFAULT_ROLE = 'Full-stack developer';
 const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const MIN_ROLE_LENGTH = 2;
+const MAX_ROLE_LENGTH = 80;
 
 function validatePdfFile(file) {
   if (!file) {
@@ -39,7 +40,7 @@ function formatFileSize(bytes) {
 
 export default function UploadForm({ onSubmit }) {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [targetRole, setTargetRole] = useState(DEFAULT_ROLE);
+  const [targetRole, setTargetRole] = useState('');
   const [validationError, setValidationError] = useState('');
 
   function handleFileChange(event) {
@@ -57,17 +58,30 @@ export default function UploadForm({ onSubmit }) {
   function handleSubmit(event) {
     event.preventDefault();
 
-    const error = validatePdfFile(selectedFile);
-    if (error) {
-      setValidationError(error);
+    const fileError = validatePdfFile(selectedFile);
+    if (fileError) {
+      setValidationError(fileError);
+      return;
+    }
+
+    const trimmedRole = targetRole.trim();
+    if (
+      trimmedRole.length < MIN_ROLE_LENGTH ||
+      trimmedRole.length > MAX_ROLE_LENGTH
+    ) {
+      setValidationError('Please enter a target role (2–80 characters).');
       return;
     }
 
     setValidationError('');
-    onSubmit(selectedFile, targetRole);
+    onSubmit(selectedFile, trimmedRole);
   }
 
-  const isSubmitDisabled = !selectedFile || Boolean(validationError);
+  const trimmedRole = targetRole.trim();
+  const isSubmitDisabled =
+    !selectedFile ||
+    Boolean(validationError) ||
+    trimmedRole.length < MIN_ROLE_LENGTH;
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
@@ -129,7 +143,7 @@ export default function UploadForm({ onSubmit }) {
         </label>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <label
           htmlFor="target-role"
           className="block text-base font-semibold text-neutral-900"
@@ -137,19 +151,38 @@ export default function UploadForm({ onSubmit }) {
           Target role
         </label>
 
-        <select
+        <input
           id="target-role"
           name="targetRole"
+          type="text"
+          required
+          maxLength={MAX_ROLE_LENGTH}
           value={targetRole}
           onChange={(event) => setTargetRole(event.target.value)}
-          className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 shadow-xs transition focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/15"
-        >
-          {TARGET_ROLES.map((role) => (
-            <option key={role} value={role}>
-              {role}
-            </option>
-          ))}
-        </select>
+          placeholder="e.g., Java Backend Developer, Frontend Engineer, Data Analyst"
+          className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 shadow-xs transition focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/15"
+        />
+
+        <div className="flex flex-wrap gap-2" aria-label="Popular target roles">
+          {PRESET_ROLES.map((role) => {
+            const isSelected =
+              trimmedRole.toLowerCase() === role.toLowerCase();
+            return (
+              <button
+                key={role}
+                type="button"
+                onClick={() => setTargetRole(role)}
+                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition ${
+                  isSelected
+                    ? 'bg-neutral-900 text-white'
+                    : 'border border-neutral-300 bg-neutral-50 text-neutral-700 hover:border-neutral-400 hover:bg-neutral-100'
+                }`}
+              >
+                {role}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="space-y-2">
