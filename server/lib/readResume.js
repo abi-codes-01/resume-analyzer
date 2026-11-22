@@ -1,20 +1,16 @@
-import { PDFParse } from 'pdf-parse';
+import { extractText } from 'unpdf';
 
 function cleanResumeText(rawText) {
   return rawText
     .replace(/\r\n/g, '\n')
-    .replace(/^\s*--\s*\d+\s+of\s+\d+\s*--\s*$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
 export async function readResume(buffer) {
-  const parser = new PDFParse({ data: buffer });
+  const { text } = await extractText(new Uint8Array(buffer), {
+    mergePages: true,
+  });
 
-  try {
-    const { text } = await parser.getText();
-    return cleanResumeText(text);
-  } finally {
-    await parser.destroy();
-  }
+  return cleanResumeText(text);
 }
