@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import ErrorState from './components/ErrorState';
-import HistoryList from './components/HistoryList';
 import LoadingState from './components/LoadingState';
 import ResultCard from './components/ResultCard';
 import UploadForm from './components/UploadForm';
-import { analyzeResume, fetchResults } from './lib/api';
+import { analyzeResume } from './lib/api';
 import { getUserId } from './lib/userId';
 
 const DEV_STATES = ['idle', 'loading', 'done', 'error'];
@@ -15,22 +14,8 @@ export default function App() {
   const [userId] = useState(() => getUserId());
   const [status, setStatus] = useState('idle');
   const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const activeRequestIdRef = useRef(0);
-
-  const loadHistory = useCallback(async () => {
-    try {
-      const items = await fetchResults(userId);
-      setHistory(items);
-    } catch {
-      setHistory((current) => current);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    loadHistory();
-  }, [loadHistory]);
 
   async function handleAnalyze(file, targetRole) {
     const requestId = activeRequestIdRef.current + 1;
@@ -47,7 +32,6 @@ export default function App() {
 
       setResult(data);
       setStatus('done');
-      loadHistory();
     } catch (error) {
       if (activeRequestIdRef.current !== requestId) {
         return;
@@ -107,8 +91,6 @@ export default function App() {
             />
           )}
         </main>
-
-        <HistoryList items={history} />
 
         {import.meta.env.DEV && (
           <aside
