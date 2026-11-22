@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express from 'express';
 import { connectDb } from './db.js';
 import { checkCostConfig } from './lib/cost.js';
@@ -10,8 +11,12 @@ await connectDb();
 
 const app = express();
 const port = process.env.PORT || 4000;
+const clientOrigin = (
+  process.env.CLIENT_ORIGIN || 'http://localhost:5173'
+).replace(/\/$/, '');
 
 app.set('trust proxy', 1);
+app.use(cors({ origin: clientOrigin }));
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
